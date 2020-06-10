@@ -2,6 +2,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c,visualstudiocode,macos,windows,linux,code
 # Edit at https://www.toptal.com/developers/gitignore?templates=c,visualstudiocode,macos,windows,linux,code
 
+
+
 ### C ###
 # Prerequisites
 *.d
