@@ -21,5 +21,5 @@ All the images has to be in the project root, with naming like "Imagen_1.jpg","I
 This project uses the library [STB](https://github.com/nothings/stb). And the makefile created by [Nicolas Gutierrez](https://github.com/ngutierrezp/Makefile).
 
 
-
+Project Page on Github [ealopezg/imagePipeline](https://github.com/ealopezg/imagePipeline)
 
