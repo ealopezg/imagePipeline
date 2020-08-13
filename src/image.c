@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "../include/image.h"
 
 
@@ -22,7 +23,6 @@ Image* open_image(char* filename){
         free(img);
         return NULL;
     } 
-
     return img;
 }
 

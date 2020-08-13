@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "../include/image.h"
 #include "../include/utils.h"
 
@@ -14,14 +15,13 @@
  * @param p Pixel escogido
  * @param img Estructura imagen
  * @param c Configuracion
- * @return unsigned char 
+ * @return uint8_t 
  */
-unsigned char laplace(unsigned char *p,Image*img,Config*c){
+uint8_t laplace(uint8_t * p,int i,int j,Image*img,Config*c){
     // Se inicializa el valor inicial, en esta variable se irá guardando
     // El resultado de la función
-    unsigned char pixel = (uint8_t)0;
-    unsigned char* pivot; // Pivote para recorrer la imagen
-    int useSamePixel = 0;  // Bandera para reemplazar el pixel actual en los casos de borde
+    uint8_t pixel = 0;
+    uint8_t * pivot; // Pivote para recorrer la imagen
 
     /**
      * @brief Primero es importante saber como la librería STBI para el manejo
@@ -59,77 +59,75 @@ unsigned char laplace(unsigned char *p,Image*img,Config*c){
 
     // PARA PIXELES 0 1 2
 
+
     //PIXEL 0: largo+1 pixeles atrás
-    if((pivot = p-img->channels*(img->width+1))!= NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[0]; // PIXEL NO ES NULO SE MULTIPLICA POR EL VALOR DE LA MATRIZ
-    }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[0]; // SI ES VERDADERO SE MULTIPLICA USANDO EL PIXEL ORIGINAL
+    
+    if(i-1 >= 0 && j-1 >= 0){
+        pivot = p-(img->channels*(img->width+1));
+        pixel = pixel + (*pivot)*c->lap_mask[0]; 
     }
 
     //PIXEL 1: largo pixeles atrás
-    if((pivot = p-img->channels*(img->width))!= NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[1];
+    
+    if(j-1 >= 0){
+        pivot = p-(img->channels*(img->width));
+        pixel = pixel + (*pivot)*c->lap_mask[1];
     }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[1];
-    }
-
+    
     //PIXEL 2: largo - 1 pixeles atrás
-    if((pivot = p-img->channels*(img->width-1))!= NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[2];
-    }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[2];
+    
+    if(i+1 < img->width && j-1 >= 0){
+        pivot = p-(img->channels*(img->width-1));
+        pixel = pixel + (*pivot)*c->lap_mask[2];
     }
 
 
     //PIXEL 3: 1 pixel atras
-    if((pivot = p-img->channels)!= NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[3];
+    
+    if(i-1 >= 0 ){
+        pivot = p-(img->channels);
+        pixel = pixel + (*pivot)*c->lap_mask[3];
     }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[3];
-    }
+   
     //PIXEL 4: El mismo pixel
-    if((pivot = p)!= NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[4];
-    }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[4];
-    }
+    
+    
+    pixel = pixel + (*p)*c->lap_mask[4];
+    
+    
 
-    //PIXEL 4: 1 pixel adelante
-    if((pivot = p+img->channels) != NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[5];
+    //PIXEL 5: 1 pixel adelante
+    
+    if(i+1 < img->width ){
+        pivot = p+(img->channels);
+        pixel = pixel + (*pivot)*c->lap_mask[5];
     }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[5];
-    }
-
+    
 
 
-    //PIXEL 5: largo-1 pixeles adelante
-    if((pivot = p+img->channels*(img->width-1))!= NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[6];
+    //PIXEL 6: largo-1 pixeles adelante
+    
+    if(i-1 >= 0  && j+1 < img->height){
+        pivot = p+(img->channels*(img->width-1));
+        pixel = pixel + (*pivot)*c->lap_mask[6];
     }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[6];
+    
+
+    //PIXEL 7: largo pixeles adelante
+    
+    if(j+1 < img->height){
+        pivot = p+(img->channels*(img->width));
+        pixel = pixel + (*pivot)*c->lap_mask[7];
     }
-    //PIXEL 5: largo pixeles adelante
-    if((pivot = p+img->channels*(img->width))!= NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[7];
+    
+    //PIXEL 8: largo+1 pixeles adelante
+    
+    if(i+1 < img->width && j+1 < img->height){
+        pivot = p+(img->channels*(img->width+1));
+        pixel = pixel + (*pivot)*c->lap_mask[8];
     }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[7];
-    }
-    //PIXEL 5: largo+1 pixeles adelante
-    if((pivot = p+img->channels*(img->width+1))!= NULL){
-        pixel = pixel + (uint8_t)*pivot*c->lap_mask[8];
-    }
-    else if(useSamePixel){
-        pixel = pixel + (uint8_t)*p*c->lap_mask[8];
-    }
+
+
 
     return pixel;
 
@@ -144,14 +142,13 @@ unsigned char laplace(unsigned char *p,Image*img,Config*c){
  */
 void rgb_to_grayscale(Config * c,Image *img){
     // Inicializa las variables
-    size_t img_size = img->width*img->height*img->channels; //Tamaño de la imagen
+    int img_size = img->width*img->height*img->channels; //Tamaño de la imagen
     int gray_channels = img->channels == 4 ? 2 : 1; // Nuevos canales
-    size_t gray_img_size = img->width*img->height*gray_channels; //Tamaño de la imagen usando los nuevos canales
-    
-    unsigned char *gray_img = malloc(gray_img_size); //Asignar la memoria para la nueva imagen
+    int gray_img_size = img->width*img->height*gray_channels; //Tamaño de la imagen usando los nuevos canales
+    uint8_t *gray_img = malloc(sizeof(uint8_t)*gray_img_size); //Asignar la memoria para la nueva imagen
     //Recorriendo la imagen
     //Idea extraida del video: https://solarianprogrammer.com/2019/06/10/c-programming-reading-writing-images-stb_image-libraries/
-    for(unsigned char *p = img->data, *pg = gray_img; p != img->data + img_size; p+= img->channels, pg+= gray_channels){
+    for(uint8_t *p = img->data, *pg = gray_img; p != img->data + img_size; p+= img->channels, pg+= gray_channels){
         *pg = (uint8_t)((*p)*0.3 + (*p + 1)*0.59 + (*p+2)*0.11);
     }
     stbi_image_free(img->data); // Liberación de memoria
@@ -167,12 +164,20 @@ void rgb_to_grayscale(Config * c,Image *img){
  * @param img Estructura imagen
  */
 void apply_lap_filter(Config * c,Image *img){
-    size_t img_size = img->width*img->height*img->channels; //Tamaño de la imagen
-    unsigned char *lap_img = malloc(img_size); //Asignar la memoria para la nueva imagen
+    int img_size = img->width*img->height*img->channels; //Tamaño de la imagen
+    uint8_t *lap_img = malloc(sizeof(uint8_t)*img_size); //Asignar la memoria para la nueva imagen
     //Recorriendo la imagen
-    //Idea extraida del video: https://solarianprogrammer.com/2019/06/10/c-programming-reading-writing-images-stb_image-libraries/
-    for(unsigned char *p = img->data, *pg = lap_img; p != img->data + img_size; p+= img->channels, pg+= img->channels){
-        *pg = (uint8_t)laplace(p,img,c); //LLAMADA A LA FUNCION, PARA OBTENER EL NUEVO VALOR DEL PIXEL
+    uint8_t *p = img->data;
+    uint8_t *pg = lap_img;
+    for (int j = 0; j < img->height; j++)
+    {
+        for (int i = 0; i < img->width; i++)
+        {
+            *pg = laplace(p,i,j,img,c);
+            p+= img->channels;
+            pg+= img->channels;
+        }
+        
     }
     stbi_image_free(img->data);  // Liberación de memoria
     img->data = lap_img; // Asignación de la nueva imagen
@@ -185,11 +190,12 @@ void apply_lap_filter(Config * c,Image *img){
  * @param img Estructura imagen
  */
 void apply_binary(Config * c,Image *img){
-    size_t img_size = img->width*img->height*img->channels; //Tamaño de la imagen
-    unsigned char *binary_img = malloc(img_size); //Asignar la memoria para la nueva imagen
+    
+    int img_size = img->width*img->height*img->channels; //Tamaño de la imagen
+    uint8_t *binary_img = malloc(sizeof(uint8_t)*img_size); //Asignar la memoria para la nueva imagen
     //Recorriendo la imagen
     //Idea extraida del video: https://solarianprogrammer.com/2019/06/10/c-programming-reading-writing-images-stb_image-libraries/
-    for(unsigned char *p = img->data, *pg = binary_img; p != img->data + img_size; p+= img->channels, pg+= img->channels){
+    for(uint8_t *p = img->data, *pg = binary_img; p != img->data + img_size; p+= img->channels, pg+= img->channels){
         //Si el valor del pixel es mayor al umbral asignarlo a 255 sino asignarlo a 0
         if(*p > c->bin_threshold){
             *pg = (uint8_t)255; 
@@ -198,7 +204,7 @@ void apply_binary(Config * c,Image *img){
             *pg = (uint8_t)0;
         }
     }
-    stbi_image_free(img->data); // Liberación de memoria
+    free(img->data); // Liberación de memoria
     img->data = binary_img; // Asignación de la nueva imagen
 }
 
@@ -211,9 +217,9 @@ void apply_binary(Config * c,Image *img){
  * @return int Si es suficientemente negra devuelve 1 de lo contrario 0
  */
 int rate(Config * c,Image *img){
-    size_t img_size = img->width*img->height*img->channels; //Tamaño de la imagen
+    int img_size = img->width*img->height*img->channels; //Tamaño de la imagen
     int black_count = 0; // Contador
-    for(unsigned char *p = img->data; p != img->data + img_size; p+= img->channels){
+    for(uint8_t *p = img->data; p != img->data + img_size; p+= img->channels){
         //Si es negro suma al contador
         if(*p == 0){
             black_count+=1; 

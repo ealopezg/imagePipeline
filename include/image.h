@@ -7,7 +7,7 @@ typedef struct Image
     int width; //Ancho
     int height; //Alto
     int channels; //Cantidad de canales
-    unsigned char * data; //Arreglo de pixeles
+    uint8_t * data; //Arreglo de pixeles
 } Image;
 
 Image* open_image(char* filename);

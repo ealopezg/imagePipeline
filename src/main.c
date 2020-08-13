@@ -1,10 +1,11 @@
 #include<stdio.h>
 #include<unistd.h>
+#include <stdint.h>
 #include "../include/image.h"
 #include "../include/utils.h"
 #include "../include/pipeline.h"
 
-#define DEBUG 0 //DEJAR EN 1 PARA QUE NO SE SOBREESCRIBA LA IMAGEN
+#define DEBUG 1 //DEJAR EN 1 PARA QUE NO SE SOBREESCRIBA LA IMAGEN
 
 
 int main(int argc, char const *argv[])
@@ -25,8 +26,8 @@ int main(int argc, char const *argv[])
                 img = open_image(filename); //Abre la imagen
                 if(img != NULL){ //Si la imagen se abrió correctamente corre el pipeline
                     rgb_to_grayscale(c,img);
-                    apply_binary(c,img);
                     apply_lap_filter(c,img);
+                    apply_binary(c,img);
                     nb=rate(c,img);
                     //Se muestra el resultado por pantalla
                     if(c->show){
@@ -34,7 +35,7 @@ int main(int argc, char const *argv[])
                     }
                     //Se vuelve a guardar la imagen
                     if(DEBUG){
-                        sprintf(filename,"imagen_%d_1.jpg",i+1); //Si la bandera DEBUG está activada se le cambia el nombre a la imagen, de lo contrario se reemplaza.
+                        sprintf(filename,"imagen_%d_edit.jpg",i+1); //Si la bandera DEBUG está activada se le cambia el nombre a la imagen, de lo contrario se reemplaza.
                     }
                     write_image(filename,img);
                     free_image(img);
